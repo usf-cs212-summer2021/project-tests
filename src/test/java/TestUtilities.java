@@ -10,18 +10,29 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.launcher.TagFilter;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
+import org.junit.platform.launcher.listeners.TestExecutionSummary.Failure;
 
 /**
  * Utility methods used by other JUnit test classes.
  *
  * @author CS 212 Software Development
  * @author University of San Francisco
- * @version Spring 2021
+ * @version Summer 2021
  */
 public class TestUtilities {
 	/** Detect whether paths are Unix-like (true for Linux, Mac, but not Windows) */
@@ -368,5 +379,62 @@ public class TestUtilities {
 		}
 		
 		return copied;
+	}
+	
+	/**
+	 * Runs all JUnit tests tagged with "verify" from the provided test class.
+	 * 
+	 * @param testClass the test class to use
+	 */
+	public static void runTestClass(Class<?> testClass) {
+		var request = LauncherDiscoveryRequestBuilder.request()
+				.selectors(DiscoverySelectors.selectClass(testClass))
+				.filters(
+						TagFilter.includeTags("verify"),   // include old verification tests
+						TagFilter.excludeTags("previous")) // except the one testing previous verification tests
+				.build();
+
+		var launcher = LauncherFactory.create();
+		var listener = new SummaryGeneratingListener();
+
+		Logger logger = Logger.getLogger("org.junit.platform.launcher");
+		logger.setLevel(Level.SEVERE);
+
+		launcher.registerTestExecutionListeners(listener);
+		launcher.execute(request);
+		
+		String debug = "\nMust pass all \"verify\" tests from %s. \n\nFailures:\n%s\n";
+		String failures = listener.getSummary().getFailures().stream()
+				.map(TestUtilities::parseTestId)
+				.collect(Collectors.joining("\n"));
+				
+		Assertions.assertEquals(0, listener.getSummary().getTotalFailureCount(),
+				() -> debug.formatted(testClass.getSimpleName(), failures));
+	}
+	
+	/**
+	 * Tries to extract a human-readable test name from the failure.
+	 * @param failure the test failure
+	 * @return readable test name of the failure
+	 */
+	public static String parseTestId(Failure failure) {
+		// [engine:junit-jupiter]/[class:Project3aTest]/[nested-class:A_ThreadBuildTest]/[test-template:testText(int)]/[test-template-invocation:#1]
+		TestIdentifier test = failure.getTestIdentifier();
+		String id = test.getUniqueId();
+		
+		String regex = ".+?\\[nested-class:(.+?)\\].+?\\[(?:test-template|method):(.+?)\\](?:.*?\\[test-template-invocation:(.+?)\\])?";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(id);
+		
+		if (matcher.matches()) {
+			String className = matcher.group(1);
+			String methodName = matcher.group(2);
+			String repeatName = matcher.group(3);
+			
+			repeatName = repeatName == null ? "" : repeatName;
+			return className + "." + methodName + repeatName;
+		}
+		
+		return id;
 	}
 }

@@ -24,25 +24,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author CS 212 Software Development
  * @author University of San Francisco
- * @version Spring 2021
+ * @version Summer 2021
  */
 @TestMethodOrder(MethodName.class)
 public class Project3aTest extends TestUtilities {
-	/**
-	 * Make sure single-threading seems to work before running any of the mutli-
-	 * threading tests.
-	 */
-	@Test
-	@Tag("verify")
-	public void testSingle() {
-		var project1 = new Project1Test().new A_OutputTest();
-		project1.testText();
-		
-		var project2 = new Project2Test().new C_PartialSearchTest();
-		project2.setup();
-		project2.testTextDirectory();
-	}
-	
 	/**
 	 * Tests the output of this project.
 	 */
@@ -439,6 +424,16 @@ public class Project3aTest extends TestUtilities {
 			
 			testMultithreaded(single, multi);
 		}
+	}
+	
+	/**
+	 * Makes sure old verification tests still pass.
+	 */
+	@Test
+	@Tag("verify")
+	@Tag("previous")
+	public void verifyPreviousProject() {
+		runTestClass(Project2Test.class);
 	}
 	
 	/** The default number of threads to use in mutlithreading approach tests. */

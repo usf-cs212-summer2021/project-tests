@@ -27,11 +27,10 @@ import org.junit.jupiter.api.TestMethodOrder;
  * 
  * @author CS 212 Software Development
  * @author University of San Francisco
- * @version Spring 2021
+ * @version Summer 2021
  */
 @TestMethodOrder(MethodName.class)
 public class Project3bTest extends TestUtilities {
-	
 	/**
 	 * Tests the output consistency of this project.
 	 * 
@@ -258,8 +257,24 @@ public class Project3bTest extends TestUtilities {
 	 * @return the runtime difference between the first and second set of arguments
 	 */
 	public static double compare(String label1, String[] args1, String label2, String[] args2) {
-		long[] runs1 = benchmark(args1);
-		long[] runs2 = benchmark(args2);
+		return compare(label1, args1, label2, args2, WARM_RUNS, TIME_RUNS);
+	}
+	
+	/**
+	 * Compares the runtime using two different sets of arguments. Outputs the
+	 * runtimes to the console just in case there are any anomalies.
+	 *
+	 * @param label1 the label of the first argument set
+	 * @param args1 the first argument set
+	 * @param label2 the label of the second argument set
+	 * @param args2 the second argument set
+	 * @param warmRuns the number of warmup runs to use
+	 * @param timeRuns the number of timed runs to use
+	 * @return the runtime difference between the first and second set of arguments
+	 */
+	public static double compare(String label1, String[] args1, String label2, String[] args2, int warmRuns, int timeRuns) {
+		long[] runs1 = benchmark(args1, warmRuns, timeRuns);
+		long[] runs2 = benchmark(args2, warmRuns, timeRuns);
 
 		long total1 = 0;
 		long total2 = 0;
@@ -269,7 +284,7 @@ public class Project3bTest extends TestUtilities {
 
 		System.out.printf("%n```%n");
 		System.out.printf(labelFormat, "Warmup", label1, label2);
-		for (int i = 0; i < WARM_RUNS; i++) {
+		for (int i = 0; i < warmRuns; i++) {
 			System.out.printf(valueFormat, i + 1,
 					(double) runs1[i] / Duration.ofSeconds(1).toMillis(),
 					(double) runs2[i] / Duration.ofSeconds(1).toMillis());
@@ -277,7 +292,7 @@ public class Project3bTest extends TestUtilities {
 
 		System.out.println();
 		System.out.printf(labelFormat, "Timed", label1, label2);
-		for (int i = WARM_RUNS; i < WARM_RUNS + TIME_RUNS; i++) {
+		for (int i = warmRuns; i < warmRuns + timeRuns; i++) {
 			total1 += runs1[i];
 			total2 += runs2[i];
 			System.out.printf(valueFormat, i + 1,
@@ -285,8 +300,8 @@ public class Project3bTest extends TestUtilities {
 					(double) runs2[i] / Duration.ofSeconds(1).toMillis());
 		}
 
-		double average1 = (double) total1 / TIME_RUNS;
-		double average2 = (double) total2 / TIME_RUNS;
+		double average1 = (double) total1 / timeRuns;
+		double average2 = (double) total2 / timeRuns;
 
 		System.out.println();
 		System.out.printf("%10s:  %10.6f seconds%n", label1, average1 / Duration.ofSeconds(1).toMillis());
@@ -302,10 +317,12 @@ public class Project3bTest extends TestUtilities {
 	 * arguments. Tracks the timing of every run to allow of visual inspection.
 	 *
 	 * @param args the arguments to run
+	 * @param warmRuns the number of warmup runs to use
+	 * @param timeRuns the number of timed runs to use
 	 * @return an array of all the runtimes, including warmup runs and timed runs
 	 */
-	public static long[] benchmark(String[] args) {
-		long[] runs = new long[WARM_RUNS + TIME_RUNS];
+	public static long[] benchmark(String[] args, int warmRuns, int timeRuns) {
+		long[] runs = new long[warmRuns + timeRuns];
 
 		Instant start;
 		Duration elapsed;
@@ -319,18 +336,18 @@ public class Project3bTest extends TestUtilities {
 		System.setErr(nullStream);
 
 		try {
-			for (int i = 0; i < WARM_RUNS; i++) {
+			for (int i = 0; i < warmRuns; i++) {
 				start = Instant.now();
 				Driver.main(args);
 				elapsed = Duration.between(start, Instant.now());
 				runs[i] = elapsed.toMillis();
 			}
 
-			for (int i = 0; i < TIME_RUNS; i++) {
+			for (int i = 0; i < timeRuns; i++) {
 				start = Instant.now();
 				Driver.main(args);
 				elapsed = Duration.between(start, Instant.now());
-				runs[i + WARM_RUNS] = elapsed.toMillis();
+				runs[i + warmRuns] = elapsed.toMillis();
 			}
 		}
 		catch (Exception e) {

@@ -20,7 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author CS 212 Software Development
  * @author University of San Francisco
- * @version Spring 2021
+ * @version Summer 2021
  */
 @TestMethodOrder(MethodName.class)
 public class Project2Test extends TestUtilities {
@@ -368,6 +368,16 @@ public class Project2Test extends TestUtilities {
 			Assertions.assertTrue(Files.exists(RESULTS_DEFAULT)
 					&& !Files.exists(INDEX_DEFAULT));
 		}
+	}
+	
+	/**
+	 * Makes sure old verification tests still pass.
+	 */
+	@Test
+	@Tag("verify")
+	@Tag("previous")
+	public void verifyPreviousProject() {
+		runTestClass(Project1Test.class);
 	}
 	
 	/*
