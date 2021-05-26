@@ -479,7 +479,7 @@ public class Project3aTest extends TestUtilities {
 		Duration elapsed = Duration.between(start, Instant.now());
 		
 		// get how long to pause when checking for multithreading
-		Duration pause = elapsed.dividedBy(APROACH_THREADS);
+		Duration pause = elapsed.dividedBy(APROACH_THREADS + 1);
 		
 		Assertions.assertTimeoutPreemptively(LONG_TIMEOUT, () -> {
 			// get the non-worker threads that are running this test code
@@ -495,7 +495,7 @@ public class Project3aTest extends TestUtilities {
 			Thread.sleep(pause.toMillis());
 	
 			// get the threads (ideally Driver should be up and running by this point)
-			Assertions.assertTrue(driver.isAlive(), "Somethign went wrong with the test code; see instructor. " + 
+			Assertions.assertTrue(driver.isAlive(), "Something went wrong with the test code; see instructor. " + 
 					"Elapsed: %d, Pause: %d".formatted(elapsed.toMillis(), pause.toMillis()));
 			List<String> finish = activeThreads();
 	
