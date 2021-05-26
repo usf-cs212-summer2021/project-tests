@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Nested;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.opentest4j.AssertionFailedError;
 
 /**
  * A test suite for project 3. During development, run individual tests instead
@@ -231,6 +233,22 @@ public class Project3bTest extends TestUtilities {
 						"%d workers has a %.2fx speedup (less than the 1.1x required) compareed to %s.", 
 						BENCH_THREADS, result, "1 worker"));
 			});
+		}
+	}
+	
+	/**
+	 * Makes sure next project tests do NOT pass.
+	 */
+	@Test
+	@Tag("verify")
+	@Tag("previous")
+	public void verifyNextProject() {
+		try {
+			new Project4Test().new C_SearchTest().testJava(false);
+			Assertions.fail("The next project tests should NOT pass. Make sure you do not have code for the next project in your current branch.");
+		}
+		catch (AssertionFailedError e) {
+			// a rare instance where we want to do nothing here
 		}
 	}
 

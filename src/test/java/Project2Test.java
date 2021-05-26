@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.opentest4j.AssertionFailedError;
 
 /**
  * A test suite for project 2. During development, run individual tests instead
@@ -378,6 +379,23 @@ public class Project2Test extends TestUtilities {
 	@Tag("previous")
 	public void verifyPreviousProject() {
 		runTestClass(Project1Test.class);
+	}
+	
+	/**
+	 * Makes sure next project tests do NOT pass.
+	 */
+	@Test
+	@Tag("verify")
+	@Tag("previous")
+	public void verifyNextProject() {
+		try {
+			new Project3aTest().new E_ApproachTest().testMultithreadedBuild();
+			new Project3aTest().new E_ApproachTest().testMultithreadedSearch();
+			Assertions.fail("The next project tests should NOT pass. Make sure you do not have code for the next project in your current branch.");
+		}
+		catch (AssertionFailedError e) {
+			// a rare instance where we want to do nothing here
+		}
 	}
 	
 	/*

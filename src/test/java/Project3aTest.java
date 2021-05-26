@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.opentest4j.AssertionFailedError;
 
 /**
  * A test suite for project 3. During development, run individual tests instead
@@ -399,8 +400,16 @@ public class Project3aTest extends TestUtilities {
 		@Test
 		@Order(1)
 		public void testMultithreadedBuild() {
-			Runnable single = () -> new Project1Test().new A_OutputTest().testText();
-			Runnable multi = () -> new A_ThreadBuildTest().testText(APROACH_THREADS);
+			Runnable single = () -> {
+				new Project1Test().new A_OutputTest().testText();
+				System.out.println("Random: " + Math.random());
+			};
+			
+			Runnable multi = () -> {
+				new A_ThreadBuildTest().testText(APROACH_THREADS);
+				System.out.println("Random: " + Math.random());
+			};
+			
 			testMultithreaded(single, multi);
 		}
 		
@@ -414,12 +423,14 @@ public class Project3aTest extends TestUtilities {
 				var test = new Project2Test().new C_PartialSearchTest();
 				test.setup();
 				test.testTextDirectory();
+				System.out.println("Random: " + Math.random());
 			};
 			
 			Runnable multi = () -> {
 				var test = new C_PartialSearchTest();
 				test.setup();
 				test.testTextDirectory(APROACH_THREADS);
+				System.out.println("Random: " + Math.random());
 			};
 			
 			testMultithreaded(single, multi);
@@ -434,6 +445,22 @@ public class Project3aTest extends TestUtilities {
 	@Tag("previous")
 	public void verifyPreviousProject() {
 		runTestClass(Project2Test.class);
+	}
+	
+	/**
+	 * Makes sure next project tests do NOT pass.
+	 */
+	@Test
+	@Tag("verify")
+	@Tag("previous")
+	public void verifyNextProject() {
+		try {
+			new Project4Test().new C_SearchTest().testJava(false);
+			Assertions.fail("The next project tests should NOT pass. Make sure you do not have code for the next project in your current branch.");
+		}
+		catch (AssertionFailedError e) {
+			// a rare instance where we want to do nothing here
+		}
 	}
 	
 	/** The default number of threads to use in mutlithreading approach tests. */
@@ -460,6 +487,7 @@ public class Project3aTest extends TestUtilities {
 			
 			// start up the Driver thread
 			Thread driver = new Thread(multi);
+			driver.setPriority(Thread.MAX_PRIORITY);
 			driver.start();
 			
 			// pause this thread for a bit (this is where things can go wrong)
